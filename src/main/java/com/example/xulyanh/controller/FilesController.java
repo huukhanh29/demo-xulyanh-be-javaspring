@@ -25,7 +25,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/file")
-@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
+@CrossOrigin(value = "*")
 public class FilesController {
 
     @Autowired
@@ -72,7 +72,22 @@ public class FilesController {
         }
         return "";
     }
-
+    //lấy tènile
+    @GetMapping("/{maTaiLieu}/ten")
+    public ResponseEntity<?> getOriginalFileName(@PathVariable Long maTaiLieu) {
+        Optional<LuuAnh> taiLieu = luuAnhRepository.findById(maTaiLieu);
+        if (taiLieu.isPresent()) {
+            try {
+                String currentFileName = taiLieu.get().getUrl();
+                //String originalFileName = extractOriginalFileName(currentFileName);
+                return new ResponseEntity<>(new MessageResponse(currentFileName), HttpStatus.OK);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new MessageResponse("Could not extract original filename. Error: " + e.getMessage()));
+            }
+        } else {
+            return new ResponseEntity<>(new MessageResponse("Tài liệu không tồn tại"), HttpStatus.NOT_FOUND);
+        }
+    }
 
     private String extractOriginalFileName(String currentFileName) {
         int underscoreIndex = currentFileName.indexOf("_");
@@ -81,7 +96,7 @@ public class FilesController {
         }
         return currentFileName;
     }
-    //tải anh theo mã
+    //tải anh theo mã đối tượng
     @GetMapping("/{maLuuAnh}/download")
     public ResponseEntity<?> downloadFile(@PathVariable Long maLuuAnh) {
         Optional<LuuAnh> taiLieu = luuAnhRepository.findById(maLuuAnh);
